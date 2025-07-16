@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Search, MessageCircle, Eye, EyeOff, Wifi, Terminal } from 'lucide-react'
+import { Search, MessageCircle, Eye, EyeOff, Wifi, Terminal, Shield, Upload } from 'lucide-react'
 import EventCard from './EventCard'
+import { ctfAPI } from '../config/api'
 import './Home.css'
 
 // Mock data for events
@@ -60,6 +61,8 @@ function Home() {
   const [filteredEvents, setFilteredEvents] = useState(mockEvents)
   const [showIntercepted, setShowIntercepted] = useState(false)
   const [logIndex, setLogIndex] = useState(0)
+  const [ctfResults, setCTFResults] = useState('')
+  const [loading, setLoading] = useState(false)
 
   // Simulated log countdown effect
   useEffect(() => {
@@ -119,6 +122,54 @@ function Home() {
   const toggleIntercepted = () => {
     setShowIntercepted(!showIntercepted)
     setLogIndex(0)
+  }
+
+  // CTF Challenge Functions
+  const handleConfigExploit = async () => {
+    setLoading(true)
+    try {
+      const result = await ctfAPI.getConfig()
+      setCTFResults(`CONFIG ENDPOINT RESPONSE:\n${JSON.stringify(result, null, 2)}`)
+    } catch (error) {
+      setCTFResults(`ERROR: ${error.message}`)
+    }
+    setLoading(false)
+  }
+
+  const handleAdminLogs = async () => {
+    setLoading(true)
+    try {
+      const result = await ctfAPI.getAdminLogs()
+      setCTFResults(`ADMIN LOGS RESPONSE:\n${JSON.stringify(result, null, 2)}`)
+    } catch (error) {
+      setCTFResults(`ERROR: ${error.message}`)
+    }
+    setLoading(false)
+  }
+
+  const handleSystemConfig = async () => {
+    setLoading(true)
+    try {
+      const result = await ctfAPI.getSystemConfig()
+      setCTFResults(`SYSTEM CONFIG RESPONSE:\n${JSON.stringify(result, null, 2)}`)
+    } catch (error) {
+      setCTFResults(`ERROR: ${error.message}`)
+    }
+    setLoading(false)
+  }
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    setLoading(true)
+    try {
+      const result = await ctfAPI.uploadFile(file)
+      setCTFResults(`FILE UPLOAD RESPONSE:\n${JSON.stringify(result, null, 2)}`)
+    } catch (error) {
+      setCTFResults(`ERROR: ${error.message}`)
+    }
+    setLoading(false)
   }
 
   return (
@@ -233,6 +284,77 @@ function Home() {
                 </div>
               </div>
             )}
+
+            {/* CTF Challenge Interface */}
+            <div className="ctf-interface">
+              <div className="ctf-header">
+                <Shield className="shield-icon" size={20} />
+                <h4>🔓 EXPLOIT ENDPOINTS - CTF CHALLENGES</h4>
+              </div>
+
+              <div className="ctf-buttons">
+                <button
+                  className="ctf-button config-btn"
+                  onClick={handleConfigExploit}
+                  disabled={loading}
+                >
+                  <Terminal size={16} />
+                  TEST /config
+                </button>
+
+                <button
+                  className="ctf-button logs-btn"
+                  onClick={handleAdminLogs}
+                  disabled={loading}
+                >
+                  <Eye size={16} />
+                  ACCESS /admin/logs
+                </button>
+
+                <button
+                  className="ctf-button system-btn"
+                  onClick={handleSystemConfig}
+                  disabled={loading}
+                >
+                  <Shield size={16} />
+                  PROBE /system/config
+                </button>
+
+                <label className="ctf-button upload-btn">
+                  <Upload size={16} />
+                  UPLOAD FILE
+                  <input
+                    type="file"
+                    hidden
+                    onChange={handleFileUpload}
+                    disabled={loading}
+                  />
+                </label>
+              </div>
+
+              {ctfResults && (
+                <div className="ctf-results">
+                  <div className="results-header">
+                    <Terminal size={16} />
+                    <span>EXPLOIT RESULTS:</span>
+                  </div>
+                  <pre className="results-content">{ctfResults}</pre>
+                  <button
+                    className="clear-results-btn"
+                    onClick={() => setCTFResults('')}
+                  >
+                    CLEAR
+                  </button>
+                </div>
+              )}
+
+              {loading && (
+                <div className="loading-indicator">
+                  <span className="loading-spinner"></span>
+                  EXECUTING EXPLOIT...
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
