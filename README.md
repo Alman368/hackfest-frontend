@@ -1,6 +1,6 @@
 # Hackfest Frontend
 
-A modern React + Vite frontend for the hackfest music events platform.
+A modern React + Vite frontend for the hackfest music events platform with CTF (Capture The Flag) challenges integrated.
 
 ## 🚀 Features
 
@@ -8,6 +8,7 @@ A modern React + Vite frontend for the hackfest music events platform.
 - **Hero Section**: Beautiful gradient background with the "hackfest" title and search functionality
 - **Search Bar**: Real-time filtering of events by title and description
 - **Events Grid**: Responsive grid layout displaying event cards
+- **CTF Integration**: Hidden vulnerabilities and challenges for cybersecurity learning
 
 ### Event Cards
 - **Visual Design**: Each card includes:
@@ -28,40 +29,16 @@ A modern React + Vite frontend for the hackfest music events platform.
   - Purchase section with pricing
 - **Navigation**: Back button to return to home page
 
-## 🛠️ Technologies
+## 🛠️ Tech Stack
 
-- **React 18**: Modern React with hooks
-- **Vite**: Fast build tool and development server
-- **React Router**: Client-side routing
-- **Lucide React**: Modern icon library
-- **Custom CSS**: Responsive design with modern styling
+- **Frontend**: React 19 + Vite
+- **Styling**: CSS3 with modern features
+- **Icons**: Lucide React
+- **Routing**: React Router DOM
+- **Server**: Nginx (Alpine)
+- **Deployment**: Railway (Docker)
 
-## 🎨 Design Features
-
-- **Modern UI**: Clean, professional design with gradient backgrounds
-- **Responsive**: Works on desktop, tablet, and mobile devices
-- **Smooth Animations**: Hover effects and transitions
-- **Accessibility**: Proper semantic HTML and keyboard navigation
-- **Typography**: Inter font for clean, readable text
-
-## 📁 Project Structure
-
-```
-src/
-├── components/
-│   ├── Home.jsx           # Main home page component
-│   ├── Home.css          # Home page styles
-│   ├── EventCard.jsx     # Individual event card component
-│   ├── EventCard.css     # Event card styles
-│   ├── EventPreview.jsx  # Event detail page component
-│   └── EventPreview.css  # Event preview styles
-├── App.jsx               # Main app component with routing
-├── App.css              # Global app styles
-├── index.css            # Global CSS and fonts
-└── main.jsx             # App entry point
-```
-
-## 🚀 Getting Started
+## 🚀 Local Development
 
 ```bash
 # Install dependencies
@@ -77,6 +54,48 @@ npm run build
 npm run preview
 ```
 
+## 🐳 Railway Deployment
+
+### Prerequisites
+1. Two Railway projects:
+   - `hackfest-frontend` (this project)
+   - `hackfest-backend` (Flask API)
+
+### Frontend Deployment Steps
+
+1. **Deploy the backend first** to get its Railway URL
+2. **Configure environment variable** in Railway dashboard:
+   ```
+   BACKEND_URL=https://your-backend-app.up.railway.app
+   ```
+3. **Deploy the frontend** - it will automatically proxy API calls to the backend
+
+### Environment Variables
+
+- `BACKEND_URL`: URL of the deployed backend service (required for production)
+- `VITE_BACKEND_URL`: Backend URL for development (optional)
+
+### How It Works
+
+The frontend uses nginx as a reverse proxy:
+- **Production**: nginx proxies `/api/*`, `/config`, `/uploads/*`, `/hints`, etc. to the backend
+- **Development**: Direct API calls to `VITE_BACKEND_URL`
+
+### Microservices Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │    Backend      │
+│   (React+Nginx) │    │    (Flask)      │
+│                 │    │                 │
+│ nginx proxies:  │───▶│ /api/*          │
+│ /api/* ────────▶│    │ /config         │
+│ /config ───────▶│    │ /uploads/*      │
+│ /uploads/* ────▶│    │ /hints          │
+│ /hints ────────▶│    │ /robots.txt     │
+└─────────────────┘    └─────────────────┘
+```
+
 ## 🎯 Current Status
 
 - ✅ Home page with search functionality
@@ -84,16 +103,34 @@ npm run preview
 - ✅ Event preview/detail pages
 - ✅ Responsive design
 - ✅ Modern UI/UX
-- ⏳ Backend integration (to be implemented)
+- ✅ Backend integration via nginx proxy
+- ✅ CTF challenges and vulnerabilities
+- ✅ Railway deployment ready
 - ⏳ Functional purchase system (to be implemented)
 
-## 🔮 Next Steps
+## 🔮 CTF Challenges
 
-1. **Backend Integration**: Connect to the Flask backend for real event data
-2. **Purchase Flow**: Implement actual ticket purchasing functionality
-3. **User Authentication**: Add user login/registration
-4. **Payment Processing**: Integrate payment gateway
-5. **Event Management**: Admin interface for managing events
+The platform includes several cybersecurity challenges:
+
+1. **YAML RCE Vulnerability**: `/config` endpoint vulnerable to unsafe deserialization
+2. **Caesar Cipher**: Encrypted messages with hints for decryption
+3. **Privilege Escalation**: System information for local exploitation
+4. **File Exfiltration**: Upload and download mechanisms
+5. **Information Disclosure**: Various endpoints revealing system details
+
+### Available Endpoints (via proxy)
+
+- `/api/festival` - Festival information
+- `/api/artists` - Artists data
+- `/api/tickets` - Ticket information
+- `/api/hints` - Encrypted Caesar cipher hints
+- `/config` - **VULNERABLE** YAML configuration endpoint
+- `/uploads/<filename>` - File upload/download
+- `/api/status` - System status
+- `/api/admin` - Admin panel info
+- `/api/logs` - System logs
+- `/api/system` - System information for privilege escalation
+- `/robots.txt` - Robots file with hidden directories
 
 ## 📱 Demo Data
 
@@ -116,4 +153,10 @@ All events are music-focused as requested:
 - Featured artists and detailed descriptions
 - Event dates, times, and locations
 
-Visit http://localhost:5173 to explore the application!
+## 🚨 Security Note
+
+This application intentionally contains vulnerabilities for educational purposes. **DO NOT** deploy in production environments without proper security measures.
+
+## 📞 Support
+
+For deployment help or CTF guidance, ensure both frontend and backend are properly configured with the `BACKEND_URL` environment variable pointing to your deployed backend service.

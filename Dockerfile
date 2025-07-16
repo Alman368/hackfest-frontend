@@ -24,8 +24,17 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copiar configuración personalizada de nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Copiar el script de entrada
+COPY entrypoint.sh /entrypoint.sh
+
+# Dar permisos de ejecución al script
+RUN chmod +x /entrypoint.sh
+
+# Variable de entorno para la URL del backend
+ENV BACKEND_URL=""
+
 # Exponer el puerto 80
 EXPOSE 80
 
-# Comando por defecto
-CMD ["nginx", "-g", "daemon off;"]
+# Usar el script de entrada personalizado
+ENTRYPOINT ["/entrypoint.sh"]

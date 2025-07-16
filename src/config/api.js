@@ -1,18 +1,22 @@
 // Backend API configuration for microservices
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://hackfest-backend-production.up.railway.app';
+// In production (Railway), nginx will proxy API calls to the backend
+// In development, we use the full backend URL
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 // API endpoints
 export const API_ENDPOINTS = {
   config: '/config',
   api: '/api',
   uploads: '/uploads',
+  hints: '/hints',
+  robots: '/robots.txt',
   adminLogs: '/admin/logs',
   systemConfig: '/system/config'
 };
 
 // Utility function to make API calls
 export const apiCall = async (endpoint, options = {}) => {
-  const url = `${BASE_URL}${endpoint}`;
+  const url = BASE_URL ? `${BASE_URL}${endpoint}` : endpoint;
 
   const defaultOptions = {
     headers: {
@@ -44,14 +48,57 @@ export const apiCall = async (endpoint, options = {}) => {
 
 // Specific API functions for CTF challenges
 export const ctfAPI = {
+  // Get festival info
+  getFestival: () => apiCall('/api/festival'),
+
+  // Get artists
+  getArtists: () => apiCall('/api/artists'),
+
+  // Get tickets info
+  getTickets: () => apiCall('/api/tickets'),
+
+  // Get hints (encrypted Caesar cipher)
+  getHints: () => apiCall('/api/hints'),
+
+  // Get hints page (with decoder hints)
+  getHintsPage: () => apiCall(API_ENDPOINTS.hints),
+
+  // Decrypt Caesar cipher
+  decryptCaesar: (message, shift) => apiCall('/api/decrypt', {
+    method: 'POST',
+    body: JSON.stringify({ message, shift }),
+  }),
+
   // Vulnerable config endpoint (CTF challenge)
   getConfig: () => apiCall(API_ENDPOINTS.config, { method: 'GET' }),
 
-  // Post to config endpoint (potential vulnerability)
-  postConfig: (data) => apiCall(API_ENDPOINTS.config, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+  // Post to config endpoint (potential vulnerability - YAML RCE)
+  postConfig: (data, contentType = 'application/json') => {
+    const headers = contentType === 'application/json'
+      ? { 'Content-Type': 'application/json' }
+      : { 'Content-Type': contentType };
+
+    return apiCall(API_ENDPOINTS.config, {
+      method: 'POST',
+      headers,
+      body: contentType === 'application/json' ? JSON.stringify(data) : data,
+    });
+  },
+
+  // System status
+  getSystemStatus: () => apiCall('/api/status'),
+
+  // Admin panel
+  getAdminPanel: () => apiCall('/api/admin'),
+
+  // System logs
+  getSystemLogs: () => apiCall('/api/logs'),
+
+  // System info (privilege escalation hints)
+  getSystemInfo: () => apiCall('/api/system'),
+
+  // Robots.txt
+  getRobots: () => apiCall(API_ENDPOINTS.robots),
 
   // Admin logs endpoint (CTF challenge)
   getAdminLogs: () => apiCall(API_ENDPOINTS.adminLogs, { method: 'GET' }),
@@ -70,6 +117,9 @@ export const ctfAPI = {
       headers: {}, // Let browser set content-type for multipart
     });
   },
+
+  // Get uploaded file
+  getUploadedFile: (filename) => apiCall(`/uploads/${filename}`),
 };
 
 export default BASE_URL;
